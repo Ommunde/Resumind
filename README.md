@@ -1,87 +1,41 @@
-# Welcome to React Router!
+# Resumind (MERN + Puter)
 
-A modern, production-ready template for building full-stack React applications using React Router.
+AI-assisted resume feedback: **MongoDB**, **Express**, **React (Vite)**, **Node** for auth and persistence; **Puter.js** in the browser for file uploads to Puter and AI (`puter.ai.chat`).
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/remix-run/react-router-templates/tree/main/default)
+## Local development
 
-## Features
+1. **MongoDB** running locally or use [MongoDB Atlas](https://www.mongodb.com/cloud/atlas).
+2. **Server env**
 
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
+   ```bash
+   cp server/.env.example server/.env
+   ```
 
-## Getting Started
+   Set `MONGODB_URI`, `JWT_SECRET` (long random string), and `CLIENT_ORIGIN=http://localhost:5173`.
 
-### Installation
+3. **Install & run**
 
-Install the dependencies:
+   ```bash
+   npm install
+   npm run dev
+   ```
 
-```bash
-npm install
-```
+   - API: [http://localhost:5000](http://localhost:5000) (`/api/health`)
+   - Client: [http://localhost:5173](http://localhost:5173) (proxies `/api` to the server)
 
-### Development
+4. **Flow**
 
-Start the development server with HMR:
+   - Register / log in (JWT).
+   - Open **Puter** sign-in from the upload page when prompted (needed for AI + Puter FS).
+   - Upload a PDF; analysis runs via Puter; result and files are stored on your server.
 
-```bash
-npm run dev
-```
+## Production
 
-Your application will be available at `http://localhost:5173`.
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
-## Building for Production
+## Project layout
 
-Create a production build:
-
-```bash
-npm run build
-```
-
-## Deployment
-
-### Docker Deployment
-
-To build and run using Docker:
-
-```bash
-docker build -t my-app .
-
-# Run the container
-docker run -p 3000:3000 my-app
-```
-
-The containerized application can be deployed to any platform that supports Docker, including:
-
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
-
-### DIY Deployment
-
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
-
-```
-├── package.json
-├── package-lock.json (or pnpm-lock.yaml, or bun.lockb)
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
-```
-
-## Styling
-
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
-
----
-
-Built with ❤️ using React Router.
+| Path       | Role                                      |
+| ---------- | ----------------------------------------- |
+| `client/`  | React SPA, Puter script, PDF.js preview  |
+| `server/`  | Express API, JWT, MongoDB, resume files  |
