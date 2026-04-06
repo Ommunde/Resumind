@@ -8,8 +8,13 @@ const resumeSchema = new mongoose.Schema(
     jobTitle: { type: String, default: "" },
     jobDescription: { type: String, default: "" },
     feedback: { type: mongoose.Schema.Types.Mixed, default: null },
-    pdfRelPath: { type: String, required: true },
-    imageRelPath: { type: String, required: true },
+    // Disk-backed storage (may be ephemeral on free hosting). Kept for backwards compatibility.
+    pdfRelPath: { type: String, default: "" },
+    imageRelPath: { type: String, default: "" },
+
+    // Mongo-backed preview image to avoid blank cards on hosts without persistent disk.
+    // Stored as base64 string WITHOUT data URL prefix.
+    imageBase64: { type: String, default: "" },
   },
   { timestamps: true }
 );

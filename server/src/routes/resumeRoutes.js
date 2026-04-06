@@ -93,9 +93,22 @@ router.get("/:publicId/image", async (req, res) => {
       publicId: req.params.publicId,
     });
     if (!doc) return res.status(404).json({ error: "Not found" });
-    const abs = path.join(uploadsRoot, doc.imageRelPath);
-    res.setHeader("Content-Type", "image/png");
-    res.sendFile(path.resolve(abs));
+    // Prefer Mongo-backed preview to survive free-host restarts.
+    if (doc.imageBase64) {
+      const buf = Buffer.from(doc.imageBase64, "base64");
+      res.setHeader("Content-Type", "image/png");
+      res.setHeader("Content-Length", String(buf.length));
+      return res.status(200).send(buf);
+    }
+
+    // Backwards compatibility: older records may only have disk path.
+    if (doc.imageRelPath) {
+      const abs = path.join(uploadsRoot, doc.imageRelPath);
+      res.setHeader("Content-Type", "image/png");
+      return res.sendFile(path.resolve(abs));
+    }
+
+    return res.status(404).json({ error: "Preview image not available" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to serve image" });
@@ -152,6 +165,7 @@ router.post(
 
       const pdfRelPath = path.relative(uploadsRoot, pdfDisk).replace(/\\/g, "/");
       const imageRelPath = path.relative(uploadsRoot, imageDisk).replace(/\\/g, "/");
+      const imageBase64 = imageFile.buffer.toString("base64");
 
       await Resume.findOneAndUpdate(
         { user: req.userId, publicId: publicId.trim() },
@@ -164,6 +178,7 @@ router.post(
           feedback,
           pdfRelPath,
           imageRelPath,
+          imageBase64,
         },
         { upsert: true, new: true, setDefaultsOnInsert: true }
       );
@@ -183,8 +198,10 @@ router.delete("/:publicId", async (req, res) => {
       publicId: req.params.publicId,
     });
     if (!doc) return res.status(404).json({ error: "Not found" });
-    const dir = path.dirname(path.join(uploadsRoot, doc.pdfRelPath));
-    fs.rmSync(dir, { recursive: true, force: true });
+    if (doc.pdfRelPath) {
+      const dir = path.dirname(path.join(uploadsRoot, doc.pdfRelPath));
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
     res.json({ ok: true });
   } catch (err) {
     console.error(err);
@@ -196,8 +213,10 @@ router.delete("/", async (req, res) => {
   try {
     const list = await Resume.find({ user: req.userId });
     for (const doc of list) {
-      const dir = path.dirname(path.join(uploadsRoot, doc.pdfRelPath));
-      fs.rmSync(dir, { recursive: true, force: true });
+      if (doc.pdfRelPath) {
+        const dir = path.dirname(path.join(uploadsRoot, doc.pdfRelPath));
+        fs.rmSync(dir, { recursive: true, force: true });
+      }
     }
     await Resume.deleteMany({ user: req.userId });
     res.json({ ok: true, deleted: list.length });
