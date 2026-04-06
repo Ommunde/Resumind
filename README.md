@@ -39,3 +39,6 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 | ---------- | ----------------------------------------- |
 | `client/`  | React SPA, Puter script, PDF.js preview  |
 | `server/`  | Express API, JWT, MongoDB, resume files  |
+
+
+Deployed : https://resumind-client.vercel.app/
