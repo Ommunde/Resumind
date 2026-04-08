@@ -58,3 +58,8 @@ export async function saveResumeToServer(data) {
   });
   return res.ok;
 }
+
+export async function deleteResume(publicId) {
+  const res = await apiFetch(`/api/resumes/${publicId}`, { method: "DELETE" });
+  return res.ok;
+}

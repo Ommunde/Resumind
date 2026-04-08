@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import ResumeCard from "@/components/ResumeCard";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, deleteResume } from "@/lib/api";
 import { useAuthStore } from "@/lib/authStore";
 
 export default function HomePage() {
@@ -36,6 +36,12 @@ export default function HomePage() {
     void load();
   }, [token]);
 
+  const handleDelete = async (id) => {
+    const ok = await deleteResume(id);
+    if (!ok) return;
+    setResumes((prev) => prev.filter((r) => r.id !== id));
+  };
+
   return (
     <main className="bg-[url('/images/bg-main.svg')] bg-cover">
       <Navbar />
@@ -58,7 +64,11 @@ export default function HomePage() {
         {!loadingResumes && resumes.length > 0 && (
           <div className="resumes-section">
             {resumes.map((resume) => (
-              <ResumeCard key={resume.id} resume={resume} />
+              <ResumeCard
+                key={resume.id}
+                resume={resume}
+                onDelete={handleDelete}
+              />
             ))}
           </div>
         )}

@@ -105,7 +105,19 @@ router.get("/:publicId/image", async (req, res) => {
     if (doc.imageRelPath) {
       const abs = path.join(uploadsRoot, doc.imageRelPath);
       res.setHeader("Content-Type", "image/png");
-      return res.sendFile(path.resolve(abs));
+      const resolved = path.resolve(abs);
+      if (fs.existsSync(resolved)) {
+        // Backfill Mongo-backed preview for future requests.
+        const buf = fs.readFileSync(resolved);
+        try {
+          doc.imageBase64 = buf.toString("base64");
+          await doc.save();
+        } catch {
+          // ignore save errors; still return the image
+        }
+        return res.status(200).send(buf);
+      }
+      return res.status(404).json({ error: "Preview image file missing" });
     }
 
     return res.status(404).json({ error: "Preview image not available" });
